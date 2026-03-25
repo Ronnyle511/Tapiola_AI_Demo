@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avustin AI – päivitetty ilmainen demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0B2F6E;
+      --navy-mid: #1349A3;
+      --navy-light: #1A5DD4;
+      --accent: #E8F0FF;
+      --bg: #F0F4FB;
+      --card: #FFFFFF;
+      --text: #0D1C35;
+      --muted: #5B6F8C;
+      --border: #D3DEEE;
+      --user-bubble: #1349A3;
+      --bot-bubble: #EBF0FB;
+      --danger: #b42318;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; padding: 24px 16px; }
+    .wrap { max-width: 1260px; height: calc(100vh - 48px); margin: 0 auto; display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: stretch; }
+    .sidebar { background: linear-gradient(160deg, #0B2F6E 0%, #1349A3 60%, #1A5DD4 100%); border-radius: 28px; padding: 28px 24px 24px; color: #fff; position: sticky; top: 24px; box-shadow: 0 14px 40px rgba(11,47,110,0.18); overflow: auto; max-height: 100%; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 6px; }
+    .sidebar h2 { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1.2; margin-bottom: 10px; }
+    .sidebar p { font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.72); margin-bottom: 20px; }
+    label.field-label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: rgba(255,255,255,0.7); margin: 12px 0 5px; }
+    .form-input, .form-select {
+      width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; appearance: none;
+    }
+    .form-input::placeholder { color: rgba(255,255,255,0.35); }
+    .form-input:focus, .form-select:focus { outline: none; border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.15); }
+    .form-select option { background: #1349A3; color: #fff; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+    .chip {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.88);
+      border-radius: 50px; padding: 6px 13px; font-size: 12.5px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s;
+    }
+    .chip:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .main {
+      background: var(--card); border-radius: 28px; border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(11,47,110,0.08); display: flex; flex-direction: column; height: 100%; overflow: hidden;
+    }
+    .chat-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+    .bot-avatar { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #0B2F6E, #1A5DD4); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .chat-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 2px; }
+    .chat-header p { color: var(--muted); font-size: 13px; }
+    .status-dot { width: 8px; height: 8px; display: inline-block; border-radius: 999px; background: #41d36f; margin-right: 6px; vertical-align: middle; }
+    .main-body { display: grid; grid-template-columns: 1.12fr 0.88fr; gap: 0; min-height: 0; flex: 1; }
+    .result-panel { padding: 22px 22px 18px; border-right: 1px solid var(--border); overflow: auto; }
+    .chat-panel { display: flex; flex-direction: column; min-height: 0; background: #f8fbff; border-left: 1px solid #e2ebf8; }
+    .chat-panel-inner { margin: 16px; border: 1px solid var(--border); border-radius: 24px; background: #fff; overflow: hidden; display: flex; flex-direction: column; min-height: 640px; }
+    .chat-panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; background: linear-gradient(180deg, #0B2F6E 0%, #1349A3 100%); color:#fff; padding:14px 16px; }
+    .chat-panel-title { display:flex; align-items:center; gap:10px; }
+    .chat-panel-title .mini-avatar {
+      width: 34px; height: 34px; border-radius: 12px; background: rgba(255,255,255,0.14);
+      display:flex; align-items:center; justify-content:center; font-size:18px;
+    }
+    .chat-title-text { font-weight:700; font-size: 20px; line-height:1; }
+    .chat-subtitle { font-size:12px; opacity:.9; margin-top:4px; }
+    .chat-status { font-size: 14px; display:flex; align-items:center; gap:8px; white-space: nowrap; }
+    .step-title { font-family: 'DM Serif Display', serif; color: var(--navy); font-size: 24px; margin-bottom: 6px; }
+    .step-desc { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+    .qbox, .summary-box, .solution, .contact-card {
+      border-radius: 20px; border: 1px solid var(--border); background: #fff; margin-bottom: 14px;
+    }
+    .qbox { padding: 16px; }
+    .summary-box { background: #f4f8ff; border-color: #cfe0ff; padding: 16px; }
+    .solution, .contact-card { padding: 16px; }
+    .section-label { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .option-grid { display: grid; gap: 10px; }
+    .option-grid.two { grid-template-columns: 1fr 1fr; }
+    .option-grid.three { grid-template-columns: repeat(3, 1fr); }
+    .option {
+      width: 100%; text-align: left; border-radius: 14px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); padding: 12px 14px; font-size: 14px;
+    }
+    .option.active { background: #eef4ff; border-color: #9fc0ff; box-shadow: 0 8px 18px rgba(26,93,212,0.08); }
+    .nav-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 14px; padding: 11px 14px; font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .btn.primary { background: var(--navy-mid); color: #fff; }
+    .btn.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .mini-table { border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 14px; }
+    .mini-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid #edf3fb; font-size: 13px; }
+    .mini-row:last-child { border-bottom: none; }
+    .solution-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .solution h4 { font-size: 16px; color: var(--navy); margin: 0; }
+    .solution p { color: var(--muted); font-size: 13.5px; line-height: 1.65; }
+    .pill { border-radius: 999px; background: #eef2f8; color: #445064; padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+    .why { margin-top: 10px; background: #f7f9fc; color: #566377; border-radius: 14px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+    .contact-card h4 { color: var(--navy); font-size: 16px; margin-bottom: 6px; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .contact-item { background: #f9fbff; border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+    .chat { flex: 1; padding: 16px 14px 10px; overflow: auto; background: #fbfcff; }
+    .msg { max-width: 86%; padding: 12px 14px; border-radius: 18px; margin-bottom: 10px; line-height: 1.6; font-size: 14px; white-space: pre-wrap; }
+    .msg.user { background: var(--user-bubble); color: #fff; margin-left: auto; border-top-right-radius: 8px; }
+    .msg.bot { background: var(--bot-bubble); color: var(--text); border-top-left-radius: 8px; }
+    .sources { padding: 0 16px 8px; color: var(--muted); font-size: 12.5px; min-height: 24px; background:#fff; }
+    .input-area { border-top: 1px solid var(--border); background: #fff; padding: 14px 14px 16px; }
+    .input-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .question-input {
+      width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border);
+      font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: #fff;
+    }
+    .question-input:focus { outline: none; border-color: #9fc0ff; }
+    .send-btn { background: var(--navy-mid); color: #fff; border: none; border-radius: 14px; padding: 0 16px; font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+    .chat-prompt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .chat-chip { background: #eef4ff; border: 1px solid #cfe0ff; color: var(--navy); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; cursor: pointer; }
+    .muted { color: var(--muted); }
+    .error { color: var(--danger); font-size: 12.5px; margin-top: 8px; line-height: 1.5; }
+    @media (max-width: 1100px) { .main-body { grid-template-columns: 1fr; } .result-panel { border-right: none; border-bottom: 1px solid var(--border); } }
+    @media (max-width: 920px) { body { height: auto; overflow: auto; } .wrap { grid-template-columns: 1fr; height: auto; } .sidebar { position: static; max-height: none; overflow: visible; } .main { height: auto; min-height: 780px; } .option-grid.two, .option-grid.three, .contact-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="sidebar">
+    <div class="eyebrow">Avustin AI</div>
+    <h2>Yritysasiakkaan vakuutusavustin</h2>
+    <p>Täytä yrityksen tiedot ja etene kartoituksessa. Kun tiedot on annettu, saat tärkeimmät ehdotukset ja voit kysyä AI-avustimelta lisää.</p>
+
+    <label class="field-label">Yrityksen nimi</label>
+    <input id="companyName" class="form-input" placeholder="Kirjoita yrityksen nimi" />
+
+    <label class="field-label">Y-tunnus</label>
+    <input id="businessId" class="form-input" placeholder="1234567-8" />
+
+    <label class="field-label">Toimiala</label>
+    <select id="sector" class="form-select">
+      <option value="">Valitse toimiala</option>
+      <option>Asiantuntijapalvelut</option>
+      <option>Rakennusala</option>
+      <option>Kauppa</option>
+      <option>Kuljetusala</option>
+      <option>Teollisuus</option>
+      <option>Muu</option>
+    </select>
+
+    <label class="field-label">Toimipaikka / kunta tai alue</label>
+    <select id="region" class="form-select">
+      <option value="">Valitse kunta tai alue</option>
+    </select>
+
+    <label class="field-label">Henkilöstömäärä</label>
+    <select id="employees" class="form-select">
+      <option value="">Valitse henkilöstömäärä</option>
+      <option>1–5</option>
+      <option>6–20</option>
+      <option>21–50</option>
+      <option>51–100</option>
+      <option>100+</option>
+    </select>
+  </aside>
+
+  <main class="main">
+    <div class="chat-header">
+      <div class="bot-avatar">🤖</div>
+      <div>
+        <h2>Avustin AI</h2>
+        <p><span class="status-dot"></span>Kartoitus + ilmainen demo-AI samassa näkymässä</p>
+      </div>
+    </div>
+
+    <div class="main-body">
+      <section class="result-panel">
+        <div id="resultContent"></div>
+      </section>
+
+      <section class="chat-panel">
+        <div class="chat-panel-inner">
+          <div class="chat-panel-head">
+            <div class="chat-panel-title">
+              <div class="mini-avatar">🤖</div>
+              <div>
+                <div class="chat-title-text">Avustin AI</div>
+                <div class="chat-subtitle">Kysymykset kartoituksen jälkeen</div>
+              </div>
+            </div>
+            <div class="chat-status"><span class="status-dot"></span>Aktiivinen</div>
+          </div>
+          <div id="chat" class="chat"></div>
+          <div id="sources" class="sources"></div>
+          <div class="input-area">
+            <div class="chat-prompt-chips">
+              <button class="chat-chip" onclick="askChip('Mitä kybervakuutus käytännössä kattaa?')">Mitä kyber kattaa?</button>
+              <button class="chat-chip" onclick="askChip('Mikä on autovakuutus?')">Mikä on autovakuutus?</button>
+              <button class="chat-chip" onclick="askChip('Näytä minulle lisää vakuutusehdotuksia ja kerro miksi.')">Lisää ehdotuksia</button>
+              <button class="chat-chip" onclick="askChip('Miksi juuri tälle toimialalle?')">Miksi tälle toimialalle?</button>
+              <button class="chat-chip" onclick="askChip('Miten yhteydenotto etenee tästä?')">Yhteydenotto</button>
+            </div>
+            <div class="input-row">
+              <input id="question" class="question-input" placeholder="Kysy lisää ehdotuksista..." onkeydown="if(event.key==='Enter')askAI()" />
+              <button class="send-btn" onclick="askAI()">Lähetä ➜</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+const regionOptions = [
+  "Uusimaa","Varsinais-Suomi","Pirkanmaa","Satakunta","Kanta-Häme","Päijät-Häme","Kymenlaakso","Etelä-Karjala",
+  "Etelä-Savo","Pohjois-Savo","Pohjois-Karjala","Keski-Suomi","Etelä-Pohjanmaa","Pohjanmaa","Keski-Pohjanmaa",
+  "Pohjois-Pohjanmaa","Kainuu","Lappi","Ahvenanmaa","Helsinki","Espoo","Vantaa","Tampere","Turku","Oulu","Jyväskylä",
+  "Kuopio","Lahti","Pori","Vaasa","Joensuu","Lappeenranta","Hämeenlinna","Rovaniemi","Seinäjoki","Kotka","Salo",
+  "Porvoo","Kokkola","Mikkeli","Kajaani","Rauma","Raisio","Nokia","Ylöjärvi","Hyvinkää","Järvenpää","Lohja"
+];
+
+const state = {
+  step: 0,
+  companyName: "",
+  businessId: "",
+  sector: "",
+  region: "",
+  employees: "",
+  q1: null, q2: null, q3: null, q4: null,
+  chatMessages: []
+};
+
+const stepMeta = [
+  { title: "Vaihe 1: Toimialan ydinkysymykset", desc: "Ensimmäiset kaksi kysymystä tarkentuvat valitun toimialan mukaan." },
+  { title: "Vaihe 2: Terävät tarkennukset", desc: "Seuraavat kaksi kysymystä vaikuttavat siihen, mitkä ehdotukset nousevat tärkeimmiksi." },
+  { title: "Avustimen ehdotus", desc: "Lopuksi näkyvät tärkeimmät ehdotukset, yhteydenotto ja AI-avustin." }
+];
+
+const kb = [
+  { id:"kyber", title:"Kybervakuutus yritykselle", url:"https://www.lahitapiola.fi/yritys/", text:"Kybervakuutus liittyy yrityksen digitaalisiin riskeihin, kuten tietomurtoihin, palvelunestohyökkäyksiin, asiakasdatan vuotoihin ja järjestelmähäiriöihin. Se voi olla erityisen tärkeä asiantuntijapalveluille, IT-yrityksille ja verkkokauppaa harjoittaville yrityksille.", tags:["kyber","asiakasdata","järjestelmät","verkkokauppa","it"] },
+  { id:"vastuu", title:"Toiminnan vastuuvakuutus", url:"https://www.lahitapiola.fi/yritys/", text:"Toiminnan vastuuvakuutus suojaa tilanteissa, joissa yrityksen toiminta aiheuttaa vahinkoa ulkopuoliselle tai asiakkaan omaisuudelle. Tämä korostuu esimerkiksi rakentamisessa, asiakaskohteissa tehtävässä työssä ja asiantuntijapalveluissa, joissa virhe voi aiheuttaa taloudellista vahinkoa asiakkaalle.", tags:["vastuu","asiakaskohde","vahinko","rakentaminen","asiantuntija"] },
+  { id:"ajoneuvot", title:"Ajoneuvoihin liittyvät vakuutukset", url:"https://www.lahitapiola.fi/yritys/", text:"Ajoneuvoihin liittyvät vakuutukset ovat keskeisiä yrityksille, joiden toiminta perustuu toimituksiin, kuljetuksiin, huoltoon tai liikkuvaan kalustoon. Kaupan alalla niitä voidaan tarvita toimituksiin ja noutoihin, kuljetusalalla ne ovat usein ydinratkaisu.", tags:["ajoneuvo","kuljetus","toimitus","kauppa","logistiikka","autovakuutus"] },
+  { id:"henkilosto", title:"Henkilöstön terveys- ja turvaratkaisut", url:"https://www.lahitapiola.fi/yritys/", text:"Henkilöstöön liittyvät vakuutus- ja turvaratkaisut korostuvat yrityksissä, joissa henkilöstön työkyky, terveys ja tapaturmariskit vaikuttavat suoraan liiketoimintaan. Rakentamisessa terveys- ja tapaturmaratkaisut voivat olla erityisen tärkeitä.", tags:["henkilöstö","terveys","tapaturma","rakentaminen","työkyky"] },
+  { id:"keskeytys", title:"Keskeytysriskeihin liittyvä arviointi", url:"https://www.lahitapiola.fi/yritys/", text:"Keskeytysriski tarkoittaa sitä, että häiriö, katkos tai toimitusketjun ongelma voi pysäyttää myynnin, tuotannon tai palvelun. Tämä on tärkeä erityisesti kaupassa, teollisuudessa ja kuljetusalalla.", tags:["keskeytys","toimitusketju","tuotanto","myynti","teollisuus"] },
+  { id:"omaisuus", title:"Omaisuus- ja varastovakuutukset", url:"https://www.lahitapiola.fi/yritys/", text:"Omaisuus- ja varastovakuutukset ovat olennaisia yrityksille, joilla on merkittävää varastoa, tuotanto-omaisuutta, laitteita tai muuta arvoa. Kaupassa ne voivat liittyä varastoon ja tavaraan, teollisuudessa koneisiin ja tuotantolaitteisiin.", tags:["omaisuus","varasto","tuotanto","kauppa","teollisuus"] },
+];
+
+const contacts = {
+  Kauppa: { team:"Kaupan alan yritystiimi", name:"Laura Kauppinen", phone:"010 123 4567", email:"kauppa@lahitapiola.fi" },
+  Rakennusala: { team:"Rakentamisen yritystiimi", name:"Mikko Rakentaja", phone:"010 234 5678", email:"rakentaminen@lahitapiola.fi" },
+  Asiantuntijapalvelut: { team:"Asiantuntijayritysten tiimi", name:"Emma Tietonen", phone:"010 345 6789", email:"asiantuntijapalvelut@lahitapiola.fi" },
+  Kuljetusala: { team:"Kuljetusalan yritystiimi", name:"Jari Logistiikka", phone:"010 456 7890", email:"kuljetus@lahitapiola.fi" },
+  Teollisuus: { team:"Teollisuuden yritystiimi", name:"Pekka Teollinen", phone:"010 567 8901", email:"teollisuus@lahitapiola.fi" },
+  Muu: { team:"Yritysasiakkaiden yleistiimi", name:"Yritysasiantuntija", phone:"010 000 0000", email:"yritys@lahitapiola.fi" }
+};
+
+function populateRegions() {
+  const select = document.getElementById("region");
+  regionOptions.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = r;
+    select.appendChild(opt);
+  });
+}
+
+function syncProfile() {
+  state.companyName = document.getElementById("companyName").value.trim();
+  state.businessId = document.getElementById("businessId").value.trim();
+  state.sector = document.getElementById("sector").value;
+  state.region = document.getElementById("region").value;
+  state.employees = document.getElementById("employees").value;
+}
+
+["companyName","businessId","sector","region","employees"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => { syncProfile(); render(); });
+  document.getElementById(id).addEventListener("change", () => { syncProfile(); render(); });
+});
+
+function employeeNum() {
+  const map = {"1–5":5,"6–20":20,"21–50":50,"51–100":100,"100+":101};
+  return map[state.employees] || 999;
+}
+function smallCompany() { return employeeNum() <= 50; }
+
+function regionEmail(region) {
+  return (region || "alueyhtio").toLowerCase().replace(/ä/g,"a").replace(/ö/g,"o").replace(/å/g,"a").replace(/\s+/g,"-") + "@lahitapiola.fi";
+}
+function getContact() {
+  if (smallCompany()) {
+    return { team: `${state.region} alueyhtiö`, name: "Alueyhtiön yritysasiantuntija", phone:"010 111 1111", email: regionEmail(state.region) };
+  }
+  return contacts[state.sector] || contacts.Muu;
+}
+
+function questionsForSector(sector) {
+  if (sector === "Rakennusala") {
+    return [
+      "Onko työ fyysistä ja sisältääkö se selkeitä tapaturmariskejä henkilöstölle?",
+      "Työskennelläänkö asiakkaiden kohteissa tai muiden osapuolten ympäristöissä?",
+      "Voiko työvirhe aiheuttaa vahinkoa asiakkaan omaisuudelle?",
+      "Käytetäänkö toiminnassa paljon aliurakoitsijoita?"
+    ];
+  }
+  if (sector === "Kauppa") {
+    return [
+      "Käyttääkö yritys ajoneuvoja toimituksiin, noutoihin tai liikkuvaan palveluun?",
+      "Onko yrityksellä merkittävää varastoa tai tavaraa?",
+      "Vaihtelevatko myyntimäärät voimakkaasti sesonkien aikana?",
+      "Onko yrityksellä paljon verkkomaksamista tai maksuliikennettä?"
+    ];
+  }
+  if (sector === "Kuljetusala") {
+    return [
+      "Perustuuko toiminta vahvasti ajoneuvoihin ja liikkuvaan kalustoon?",
+      "Voisiko kuljetusten häiriö pysäyttää liiketoiminnan nopeasti?",
+      "Ovatko toimitusreitit tai aikataulut erityisen kriittisiä?",
+      "Kuljetetaanko usein arvokasta tai herkästi vahingoittuvaa tavaraa?"
+    ];
+  }
+  if (sector === "Teollisuus") {
+    return [
+      "Perustuuko toiminta koneisiin tai tuotantolaitteisiin?",
+      "Voisiko tuotannon pysähtyminen vaikuttaa liikevaihtoon nopeasti?",
+      "Onko tuotanto vahvasti riippuvainen automaatiosta tai järjestelmistä?",
+      "Riippuuko liiketoiminta vahvasti kansainvälisistä toimituksista?"
+    ];
+  }
+  if (sector === "Asiantuntijapalvelut") {
+    return [
+      "Käsitteleekö yritys asiakasdataa tai digitaalisia järjestelmiä päivittäin?",
+      "Voiko työstä syntyä asiakkaalle taloudellista vahinkoa virheen vuoksi?",
+      "Tehdäänkö työtä asiakkaan prosesseihin vaikuttavissa projekteissa?",
+      "Haluatteko lisätietoa henkilöstöön liittyvistä ratkaisuista?"
+    ];
+  }
+  return [
+    "Voisiko toiminnan häiriö vaikuttaa liiketoiminnan jatkuvuuteen merkittävästi?",
+    "Käsitteleekö yritys asiakasdataa tai muuta luottamuksellista tietoa?",
+    "Onko liiketoiminta vahvasti riippuvainen yhdestä toimintapaikasta?",
+    "Haluatteko lisätietoa henkilöstöön liittyvistä ratkaisuista?"
+  ];
+}
+
+function yesNoButtons(key) {
+  return `
+    <div class="option-grid two">
+      <button class="option ${state[key]===true?'active':''}" onclick="setAnswer('${key}', true)">Kyllä</button>
+      <button class="option ${state[key]===false?'active':''}" onclick="setAnswer('${key}', false)">Ei</button>
+    </div>`;
+}
+function setAnswer(key, val) { state[key] = val; render(); }
+
+function recommendations() {
+  const s = state.sector;
+  const q1 = state.q1, q2 = state.q2, q3 = state.q3, q4 = state.q4;
+  const recs = [];
+  if (s === "Rakennusala") {
+    recs.push("henkilosto");
+    if (q2 || q3 || q4) recs.push("vastuu");
+    if (q4) recs.push("ajoneuvot");
+    if (q1 && !recs.includes("henkilosto")) recs.push("henkilosto");
+  } else if (s === "Kauppa") {
+    if (q1) recs.push("ajoneuvot");
+    if (q2 || q3) recs.push("omaisuus");
+    if (q2 || q3 || q4) recs.push("keskeytys");
+    if (q4) recs.push("kyber");
+  } else if (s === "Kuljetusala") {
+    recs.push("ajoneuvot");
+    if (q2 || q3) recs.push("keskeytys");
+    if (q4) recs.push("vastuu");
+  } else if (s === "Teollisuus") {
+    recs.push("omaisuus");
+    if (q2 || q3 || q4) recs.push("keskeytys");
+    if (q3) recs.push("kyber");
+  } else if (s === "Asiantuntijapalvelut") {
+    recs.push("kyber");
+    if (q2 || q3) recs.push("vastuu");
+    if (q4 || employeeNum()>20) recs.push("henkilosto");
+  } else {
+    if (q1 || q3) recs.push("keskeytys");
+    if (q2) recs.push("kyber");
+    if (q4 || employeeNum()>20) recs.push("henkilosto");
+  }
+  return [...new Set(recs)].slice(0,3).map(id => kb.find(x => x.id===id)).filter(Boolean);
+}
+
+function rankKnowledge(query) {
+  const q = `${query} ${state.sector} ${state.employees}`.toLowerCase();
+  return kb.map(doc => {
+    let score = 0;
+    for (const tag of doc.tags) if (q.includes(tag.toLowerCase())) score += 3;
+    if (q.includes(doc.title.toLowerCase())) score += 2;
+    if (state.sector && doc.tags.includes(state.sector.toLowerCase())) score += 1;
+    return {...doc, score};
+  }).sort((a,b)=>b.score-a.score).slice(0,4);
+}
+
+function botReply(message) {
+  const m = message.toLowerCase();
+  const recs = recommendations();
+  const contact = getContact();
+  const context = rankKnowledge(message);
+  let answer = "";
+
+  if (m.includes("lisää") && m.includes("ehdot")) {
+    const extras = kb.filter(x => !recs.find(r => r.id===x.id)).slice(0,2);
+    answer = extras.length
+      ? "Tämän profiilin perusteella voisin nostaa lisäehdotuksina vielä:\n\n" + extras.map(x => `• ${x.title}\n  Miksi: ${x.text.split(".")[0]}.`).join("\n\n")
+      : "Tämän profiilin perusteella tärkeimmät ehdotukset on jo nostettu esiin, eikä lisäehdotuksia kannata näyttää vain listan pidentämiseksi.";
+  } else if (m.includes("kyber")) {
+    answer = "Kybervakuutus liittyy digitaalisiin riskeihin, kuten tietomurtoihin, asiakasdatan vuotoihin ja järjestelmähäiriöihin. Se on erityisen olennainen, jos yrityksen toiminta nojaa dataan, verkkokauppaan tai digitaalisiin palveluihin.";
+  } else if (m.includes("autovakuutus") || m.includes("autovakuutus?") || m.includes("mikä on autovakuutus") || m.includes("autovakuutus")) {
+    answer = "Autovakuutus liittyy yrityksen käyttämiin ajoneuvoihin. Se voi olla tärkeä esimerkiksi toimituksissa, kuljetuksissa, noutopalveluissa tai muussa liikkuvassa toiminnassa. Tässä demossa sitä käsitellään osana ajoneuvoihin liittyviä vakuutuksia.";
+  } else if (m.includes("miksi juuri tälle toimialalle") || m.includes("miksi tälle toimialalle")) {
+    answer = `Tälle toimialalle nousseet ehdotukset perustuvat siihen, millaisia riskejä ${state.sector || "valitulla toimialalla"} tyypillisesti korostuu. Avustin käyttää toimialaa, yrityksen kokoa ja antamiasi kyllä/ei-vastauksia näyttääkseen vain tärkeimmät vaihtoehdot.`;
+  } else if (m.includes("miksi nämä")) {
+    answer = "Ehdotukset perustuvat valittuun toimialaan, henkilöstömäärään ja kyllä/ei-vastauksiin. Tarkoitus on näyttää vain tärkeimmät vaihtoehdot, ei koko mahdollista vakuutusvalikoimaa kerralla.";
+  } else if (m.includes("yhteydenotto") || m.includes("asiantuntija") || m.includes("tiimi")) {
+    answer = `Yhteydenotto ohjautuisi tässä tapauksessa tiimille "${contact.team}". Yhteyshenkilö on ${contact.name}, puhelin ${contact.phone} ja sähköposti ${contact.email}.`;
+  } else if (m.includes("hinta")) {
+    answer = "Tässä ilmaisessa demossa ei lasketa hintaa. Avustin auttaa ymmärtämään, mitä ratkaisuja kannattaa selvittää ensin ennen varsinaista tarjous- tai myyntikeskustelua.";
+  } else if (recs.length) {
+    answer = `Tämän profiilin perusteella tärkeimmät ehdotukset ovat: ${recs.map(r => r.title).join(", ")}. Voin kertoa tarkemmin yhdestäkin ehdotuksesta, näyttää lisää ehdotuksia tai selittää miksi juuri nämä sopivat tälle toimialalle.`;
+  } else {
+    answer = "Voin auttaa esimerkiksi näissä: mitä jokin vakuutus tarkoittaa, miksi ehdotus nousi esiin, miten yhteydenotto etenisi tai mitä lisäehdotuksia voisi olla.";
+  }
+
+  return {
+    answer,
+    sources: context.map(c => ({ title: c.title, url: c.url }))
+  };
+}
+
+function append(role, text) {
+  const chat = document.getElementById("chat");
+  const el = document.createElement("div");
+  el.className = "msg " + role;
+  el.textContent = text;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function setQuestion(text) {
+  document.getElementById("question").value = text;
+}
+
+function askChip(text) {
+  document.getElementById("question").value = text;
+  askAI();
+}
+
+function askAI() {
+  const input = document.getElementById("question");
+  const msg = input.value.trim();
+  if (!msg) return;
+  append("user", msg);
+  input.value = "";
+  const result = botReply(msg);
+  append("bot", result.answer);
+  const sources = document.getElementById("sources");
+  sources.innerHTML = result.sources.length
+    ? "Lähteet: " + result.sources.map(s => `<a href="${s.url}" target="_blank">${s.title}</a>`).join(" · ")
+    : "";
+}
+
+function validateBasics() {
+  const missing = [];
+  if (!state.companyName) missing.push("yrityksen nimi");
+  if (!state.businessId) missing.push("y-tunnus");
+  if (!state.sector) missing.push("toimiala");
+  if (!state.region) missing.push("toimipaikka / kunta tai alue");
+  if (!state.employees) missing.push("henkilöstömäärä");
+  return missing;
+}
+
+function seedWelcome() {
+  const chat = document.getElementById("chat");
+  if (chat.children.length === 0) {
+    append("bot", "Hei! Täytä ensin kaikki perustiedot vasemmalta ja etene kartoituksessa. Sen jälkeen voin kertoa lisää ehdotuksista, vakuutuksista ja yhteydenotosta.");
+  }
+}
+
+function clearChatForNewProfile() {
+  document.getElementById("chat").innerHTML = "";
+  document.getElementById("sources").innerHTML = "";
+  seedWelcome();
+}
+
+function renderResult() {
+  syncProfile();
+  const container = document.getElementById("resultContent");
+  const meta = stepMeta[state.step];
+  const questions = questionsForSector(state.sector);
+  const missing = validateBasics();
+
+  if (state.step === 0) {
+    container.innerHTML = `
+      <div class="step-title">${meta.title}</div>
+      <div class="step-desc">${meta.desc}</div>
+      ${missing.length ? `<div class="summary-box"><div class="section-label">Perustiedot tarvitaan ennen etenemistä</div><div class="error">Täytä ensin kaikki perustiedot vasemmasta palkista: ${missing.join(", ")}.</div></div>` : ""}
+      <div class="qbox">
+        <div class="section-label">${state.sector ? questions[0] : "Valitse ensin toimiala perustiedoista"}</div>
+        ${state.sector ? yesNoButtons("q1") : `<div class="muted" style="font-size:13px;">Kun toimiala on valittu, tähän tulee ensimmäinen toimialakohtainen kysymys.</div>`}
+      </div>
+      <div class="qbox">
+        <div class="section-label">${state.sector ? questions[1] : "Valitse ensin toimiala perustiedoista"}</div>
+        ${state.sector ? yesNoButtons("q2") : `<div class="muted" style="font-size:13px;">Kun toimiala on valittu, tähän tulee toinen toimialakohtainen kysymys.</div>`}
+      </div>
+      <div class="nav-row">
+        <span></span>
+        <button class="btn primary" ${missing.length ? "disabled style='opacity:.45;cursor:not-allowed'" : ""} onclick="${missing.length ? '' : 'state.step=1; render()'}">Seuraava</button>
+      </div>`;
+      return;
+  }
+
+  if (state.step === 1) {
+    container.innerHTML = `
+      <div class="step-title">${meta.title}</div>
+      <div class="step-desc">${meta.desc}</div>
+      <div class="qbox">
+        <div class="section-label">${questions[2]}</div>
+        ${yesNoButtons("q3")}
+      </div>
+      <div class="qbox">
+        <div class="section-label">${questions[3]}</div>
+        ${yesNoButtons("q4")}
+      </div>
+      <div class="nav-row">
+        <button class="btn secondary" onclick="state.step=0; render()">Edellinen</button>
+        <button class="btn primary" onclick="state.step=2; clearChatForNewProfile(); render()">Näytä ehdotus</button>
+      </div>`;
+      return;
+  }
+
+  const recs = recommendations();
+  const contact = getContact();
+  container.innerHTML = `
+    <div class="step-title">${meta.title}</div>
+    <div class="step-desc">${meta.desc}</div>
+
+    <div class="summary-box">
+      <div class="section-label">Yhteenveto yrityksen tilanteesta</div>
+      <div style="font-size:13.5px; color: var(--muted); line-height:1.65;">
+        Avustin nostaa näkyviin vain tärkeimmät ehdotukset toimialan, yrityskoon ja kyllä/ei-vastausten perusteella.
+      </div>
+    </div>
+
+    <div class="mini-table">
+      <div class="mini-row"><span>Yrityksen nimi</span><strong>${state.companyName}</strong></div>
+      <div class="mini-row"><span>Y-tunnus</span><strong>${state.businessId}</strong></div>
+      <div class="mini-row"><span>Toimiala</span><strong>${state.sector}</strong></div>
+      <div class="mini-row"><span>Toimipaikka</span><strong>${state.region}</strong></div>
+      <div class="mini-row"><span>Henkilöstömäärä</span><strong>${state.employees}</strong></div>
+    </div>
+
+    <div class="contact-card">
+      <h4>Yhteydenotto oikeaan tiimiin</h4>
+      <div style="font-size:13px; color:var(--muted); line-height:1.6;">
+        ${smallCompany() ? "Yrityksen koko on alle 50 työntekijää, joten yhteydenotto ohjataan alueyhtiölle." : "Yrityksen koko ja toimiala viittaavat siihen, että yhteydenotto kannattaa ohjata suoraan toimialatiimille."}
+      </div>
+      <div class="contact-grid">
+        <div class="contact-item"><strong>Tiimi</strong><br>${contact.team}</div>
+        <div class="contact-item"><strong>Yhteyshenkilö</strong><br>${contact.name}</div>
+        <div class="contact-item"><strong>Puh.</strong><br>${contact.phone}</div>
+        <div class="contact-item"><strong>Mail</strong><br>${contact.email}</div>
+      </div>
+    </div>
+
+    ${recs.map(r => `
+      <div class="solution">
+        <div class="solution-top">
+          <h4>${r.title}</h4>
+          <span class="pill">Vakuutus</span>
+        </div>
+        <p>${r.text}</p>
+        <div class="why"><strong>Miksi tämä näkyy?</strong> ${r.text.split(".")[0]}.</div>
+      </div>
+    `).join("")}
+
+    <div class="nav-row">
+      <button class="btn secondary" onclick="state.step=1; render()">Takaisin kysymyksiin</button>
+      <button class="btn secondary" onclick="resetWizard()">Aloita alusta</button>
+    </div>`;
+}
+
+function resetWizard() {
+  state.step = 0;
+  state.q1 = state.q2 = state.q3 = state.q4 = null;
+  clearChatForNewProfile();
+  render();
+}
+
+function render() {
+  renderResult();
+}
+
+populateRegions();
+seedWelcome();
+render();
+</script>
+</body>
+</html>
