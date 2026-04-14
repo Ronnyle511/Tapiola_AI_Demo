@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Avustin AI – V3 demo</title>
+  <title>LähiTapiola – Vakuutustarpeen kartoitus</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -44,6 +44,10 @@
     .toggle-btn.active,.option.active{background:var(--surface-blue);border-color:#9ec3de;color:var(--blue-dark)}
     .helper-copy{font-size:13px;line-height:1.6;color:var(--muted)}
     .micro{font-size:12px;color:var(--muted);line-height:1.5}
+    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .brand-mark{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .brand-copy strong{display:block;font-size:16px;color:var(--blue-dark);line-height:1.1}
+    .brand-copy span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 
     .main{padding:16px;display:block;min-height:calc(100vh - 36px);background:linear-gradient(180deg,#f7fafc 0%,#ffffff 100%)}
     .result-panel{border:1px solid var(--line);border-radius:28px;padding:28px;background:#fff;overflow:visible;min-height:0;max-width:1180px;margin:0 auto}
@@ -70,39 +74,38 @@
 
     .chat-modal-backdrop{position:fixed;inset:0;background:rgba(8,23,36,.42);display:none;align-items:flex-end;justify-content:flex-end;padding:18px;z-index:30}
     .chat-modal-backdrop.show{display:flex}
-    .chat-shell{width:min(430px,100%);height:min(620px,calc(100vh - 36px));border:1px solid #d5e0e8;border-radius:24px;background:#f4f6f8;display:flex;flex-direction:column;overflow:hidden;min-height:0;box-shadow:var(--shadow)}
+    .chat-shell{width:min(440px,100%);height:min(640px,calc(100vh - 36px));border:1px solid #d5e0e8;border-radius:24px;background:#f4f6f8;display:flex;flex-direction:column;overflow:hidden;min-height:0;box-shadow:var(--shadow)}
+    .chat-shell.fullscreen{width:min(1080px,calc(100vw - 36px));height:calc(100vh - 36px);border-radius:28px}
     .chat-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;background:#f2f4f6;border-bottom:1px solid #e1e7eb;flex:0 0 auto}
     .chat-top h2{font-size:18px;color:var(--blue-dark)}
     .chat-icons{display:flex;gap:10px}
     .icon-btn{width:40px;height:40px;border:1px solid #c9d7e1;border-radius:10px;background:#fff;color:#1f6fa0;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
     .icon-btn.active{box-shadow:0 0 0 2px rgba(0,103,165,.18)}
     .chat-body{flex:1;min-height:0;display:flex;flex-direction:column;background:#f7f8f9}
-    .chat-meta{padding:18px 20px 8px;text-align:center;color:#6f8394;font-size:14px;flex:0 0 auto}
-    .bot-name{padding:0 20px 10px;color:#677b8b;font-size:14px;font-weight:700;flex:0 0 auto}
-    .chat-scroll{flex:1;min-height:0;overflow:auto;padding:0 20px 8px}
+    .bot-name{padding:14px 20px 8px;color:#677b8b;font-size:14px;font-weight:700;flex:0 0 auto}
+    .chat-scroll{flex:1;min-height:0;overflow:auto;padding:8px 20px 10px}
     .message-block{margin-bottom:12px}
-    .bubble{max-width:84%;padding:14px 16px;border-radius:14px;font-size:15px;line-height:1.55;white-space:pre-wrap}
-    .bubble.bot{background:var(--blue);color:#fff;border-bottom-left-radius:4px}
+    .bubble{max-width:88%;padding:14px 16px;border-radius:16px;font-size:15px;line-height:1.62;white-space:pre-wrap}
+    .bubble.bot{background:#ffffff;color:var(--text);border:1px solid #d8e3eb;border-bottom-left-radius:6px}
     .bubble.user{background:#dfe8ef;color:var(--text);margin-left:auto;border-bottom-right-radius:4px}
     .msg-time{font-size:12px;color:#75899a;margin-top:6px}
     .msg-time.user{text-align:right}
-    .sources{padding:0 20px 10px;color:#678092;font-size:12.5px;line-height:1.55;flex:0 0 auto}
+    .sources{padding:0 20px 10px;color:#678092;font-size:12.5px;line-height:1.55;flex:0 0 auto;display:none}
     .sources a{color:var(--blue-deep)}
     .chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px;flex:0 0 auto}
-    .chip{border:1px solid #cbdae6;background:#fff;color:var(--blue-dark);padding:8px 12px;border-radius:999px;font-size:12.5px;cursor:pointer}
+    .chip{border:1px solid #cbdae6;background:#fff;color:var(--blue-dark);padding:9px 12px;border-radius:999px;font-size:13px;cursor:pointer}
     .composer{flex:0 0 auto;background:#dce7ef;border-top:1px solid #c9d7e0;padding:14px 16px 16px}
     .composer-box{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;max-width:372px;margin:0 auto}
     .chat-input-wrap{position:relative}
-    .chat-input{width:100%;min-height:74px;max-height:160px;resize:vertical;border:1px solid #97acbc;border-radius:4px;background:#fff;padding:16px 14px;font:inherit;color:var(--text)}
+    .chat-input{width:100%;min-height:64px;max-height:160px;resize:vertical;border:1px solid #97acbc;border-radius:8px;background:#fff;padding:14px 14px;font:inherit;color:var(--text)}
     .send{background:transparent;border:none;color:#1e6ea0;font-size:30px;padding-top:10px;cursor:pointer}
     .counter{position:absolute;right:10px;bottom:-24px;font-size:12px;color:#5f7486}
-    .privacy{margin-top:30px;text-align:center;font-size:13px;color:#274866}
+    .privacy{margin-top:30px;text-align:center;font-size:12px;color:#4e6678}
     .privacy a{color:#0d5a90}
     .chat-launcher{position:fixed;right:22px;bottom:20px;background:var(--blue);color:#fff;border:none;border-radius:999px;padding:14px 18px;font:inherit;font-weight:700;box-shadow:var(--shadow);cursor:pointer;z-index:25}
 
-    .recommendation-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
-    .contact-side{position:sticky;top:18px;align-self:start;min-width:0}
-    .contact-card{position:sticky;top:18px;max-height:calc(100vh - 36px);overflow:auto}
+    .recommendation-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+    .contact-side{position:sticky;top:18px;min-width:0}
 
     .step-title{font-size:28px;color:var(--blue-dark);margin-bottom:6px}
     .step-desc{font-size:14px;line-height:1.65;color:var(--muted);margin-bottom:18px}
@@ -126,7 +129,7 @@
     .mini-row:last-child{border-bottom:none}
     .solution-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
     .solution h4,.contact-card h4,.final-card h4,.risk-card h4{font-size:16px;color:var(--blue-dark)}
-    .contact-card{overflow:auto}
+    .contact-card{overflow:hidden;background:#fbfdff}
     .contact-card .summary-grid{grid-template-columns:1fr}
     .contact-card .contact-item{min-width:0;overflow-wrap:anywhere}
     .solution p,.contact-card p,.final-card p,.risk-card p{font-size:13.5px;line-height:1.65;color:var(--muted)}
@@ -155,7 +158,7 @@
       .wrap,.wrap.questions-view{grid-template-columns:1fr}
       .sidebar{position:static;max-height:none}
       .recommendation-layout{grid-template-columns:1fr}
-      .contact-side,.contact-card{position:static;max-height:none}
+      .contact-side{position:static}
     }
     @media (max-width:760px){
       body{padding:12px}
@@ -183,9 +186,9 @@
       <div class="brand-mark">LT</div>
       <div class="brand-copy"><strong>LähiTapiola</strong><span>Vakuutustarpeen kartoitus</span></div>
     </div>
-    <div class="eyebrow">Avustin AI demo</div>
+    
     <h1>Vakuutustarpeen kartoitus</h1>
-    <p class="lead">Samassa demossa on sekä yksityishenkilön että yrityksen polku. Täytä ensin perustiedot ja siirry sen jälkeen erilliseen vakuutuskartoitukseen, jossa näet kysymykset, suositukset ja selkeän yhteydenottopyynnön.</p>
+    <p class="lead">Täytä ensin perustiedot. Sen jälkeen siirryt vakuutuskartoitukseen, jossa näet kysymykset, sinulle sopivat suositukset ja yhteydenottopyynnön.</p>
 
     <div class="panel">
       <label class="field-label">Asiakastyyppi</label>
@@ -255,17 +258,10 @@
       <select id="businessRegion" class="form-select"></select>
     </div>
 
+    
     <div class="panel soft">
-      <div class="section-label">Mitä tässä versiossa on parempaa?</div>
-      <div class="helper-copy">Suositukset eivät enää perustu vain yhteen sääntöön, vaan usean vastauksen pisteytykseen. Samalla osa kysymyksistä vaihtuu tilanteen mukaan, jotta kokemus tuntuu aidommalta.</div>
-      <div class="micro" style="margin-top:8px;">Suositus perustuu vain demossa annettuihin tietoihin eikä muodosta sitovaa vakuutusratkaisua.</div>
-    </div>
-
-    <div class="panel">
-      <div class="section-label">Aloita alusta</div>
-      <div class="helper-copy">Voit tyhjentää kaikki täytetyt tiedot, vastaukset ja yhteydenottopyynnön yhdellä napilla.</div>
-      <div class="nav-row" style="margin-top:12px">
-        <button class="btn secondary" type="button" onclick="resetAllData()">Tyhjennä kaikki ja aloita alusta</button>
+      <div class="nav-row" style="margin-top:0">
+        <button class="btn secondary" type="button" onclick="resetAllData()">Tyhjennä kaikki</button>
       </div>
     </div>
   </aside>
@@ -284,13 +280,13 @@
     <div class="chat-top">
       <h2>Chat</h2>
       <div class="chat-icons">
-        <button class="icon-btn active" type="button" onclick="minimizeChatModal()">—</button>
-        <button class="icon-btn" type="button" onclick="closeChatModal()">×</button>
+        <button class="icon-btn" id="chatExpandBtn" type="button" onclick="toggleChatFullscreen()" title="Avaa koko ruudulle">⤢</button>
+        <button class="icon-btn active" type="button" onclick="minimizeChatModal()" title="Pienennä">—</button>
+        <button class="icon-btn" type="button" onclick="closeChatModal()" title="Sulje">×</button>
       </div>
     </div>
     <div class="chat-body">
-      <div class="chat-meta">Chat-keskustelu aloitettu</div>
-      <div class="bot-name">ChattiJenni (chatbot)</div>
+      <div class="bot-name">Avustin</div>
       <div id="chatScroll" class="chat-scroll"></div>
       <div id="sources" class="sources"></div>
       <div id="chatChips" class="chips"></div>
@@ -313,12 +309,12 @@
     <div class="modal-top">
       <div>
         <h3>Jätä yhteydenottopyyntö</h3>
-        <p>Valitse haluamasi vakuutukset koko valikoimasta. Suositellut vaihtoehdot ovat valmiiksi valittuna, mutta voit lisätä mukaan mitä tahansa vakuutuksia ja halutessasi myös lisäpalveluja.</p>
+        <p>Valitse haluamasi vakuutukset. Suositellut vaihtoehdot ovat valmiiksi valittuna, mutta voit lisätä mukaan mitä tahansa vakuutuksia. Mahdolliset lisäpalvelut ovat erikseen vakuutusten jälkeen.</p>
       </div>
       <button class="close" onclick="closeOfferModal()">×</button>
     </div>
     <div class="box">
-      <div class="section-label">Valitse vakuutukset ja mahdolliset lisäpalvelut</div>
+      <div class="section-label">Valitse vakuutukset</div>
       <div id="insuranceOptionsMount" class="multi-options"></div>
     </div>
     <div class="box">
@@ -333,7 +329,7 @@
       <textarea id="offerFreeText" class="textarea" placeholder="Kirjoita lisätietoja tai toiveita"></textarea>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:flex-start;background:#f7fbfe;border-radius:14px;padding:12px;border:1px solid var(--line)">
         <input type="checkbox" id="offerConsent" />
-        <label for="offerConsent" style="font-size:14px;line-height:1.5">Hyväksyn täytettyjen tietojen käytön demon yhteenvetoa varten.</label>
+        <label for="offerConsent" style="font-size:14px;line-height:1.5">Hyväksyn täytettyjen tietojen käytön yhteenvetoa varten.</label>
       </div>
       <div id="offerError" class="error" style="display:none"></div>
     </div>
@@ -352,7 +348,7 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'tapiola_dual_demo_v3';
+const STORAGE_KEY = 'tapiola_dual_final';
 const regionOptions = ["Uusimaa","Varsinais-Suomi","Pirkanmaa","Satakunta","Kanta-Häme","Päijät-Häme","Kymenlaakso","Etelä-Karjala","Etelä-Savo","Pohjois-Savo","Pohjois-Karjala","Keski-Suomi","Etelä-Pohjanmaa","Pohjanmaa","Keski-Pohjanmaa","Pohjois-Pohjanmaa","Kainuu","Lappi","Ahvenanmaa"];
 const smallCompanySectors = ["Ravintola","Kuljetuspalvelut","Varastointi","Siivous","Rakennuspalvelut","Asiantuntijapalvelut","Verkkokauppa","Kampaamo / hyvinvointi","Huolto / asennuspalvelut","Muu"];
 const largeCompanySectors = ["Teollisuus","IT-yritys","Kauppa","Palvelu","Rakennusala","Julkisyhteisöt","Muu"];
@@ -368,13 +364,14 @@ const state = {
   offerSummary:null,
   profileLocked:false,
   chatOpen:false,
+  chatFullscreen:false,
   chatMessages:[]
 };
 
 const stepMeta = [
-  { title:'Peruskartoitus', desc:'Ensimmäiset kysymykset muodostetaan valitun asiakaspolun mukaan. Tarkoitus on tunnistaa perusriski ja ohjata seuraavat kysymykset oikein.' },
-  { title:'Tarkentavat kysymykset', desc:'Seuraavat kysymykset tarkentuvat jo annettujen vastausten perusteella. Näin mukaan nousevat vain olennaisimmat vakuutukset ja lisäpalvelut.' },
-  { title:'Suositukset ja seuraava askel', desc:'Lopuksi näytetään sopivimmat vakuutukset, mahdolliset lisäpalvelut, tunnistetut tarpeet ja seuraava askel yhteydenottoon.' }
+  { title:'Vakuutuskysymykset', desc:'Vastaa lyhyisiin kyllä–ei-kysymyksiin. Niiden avulla tunnistetaan sinulle sopivat vakuutukset.' },
+  { title:'Tarkentavat kysymykset', desc:'Tarkentavat kysymykset näkyvät vain silloin, kun niillä on vaikutusta suosituksiin.' },
+  { title:'Suositukset', desc:'Lopuksi näytetään sopivimmat vakuutukset ensin ja mahdolliset lisäpalvelut niiden jälkeen.' }
 ];
 
 const products = {
@@ -416,20 +413,20 @@ const questionBank = {
     { id:'p_financing', stage:2, askIf:s=>true, text:'Kiinnostaisiko myös rahoituspalvelu esimerkiksi isompaan hankintaan tai kodin investointiin?', weights:{ 'rahoitus-private':4 }, risk:'Rahoituksen tarve osana kokonaisratkaisua.', service:true }
   ],
   business:[
-    { id:'b_vehicle_ops', stage:1, text:'Perustuuko toimintanne ajoneuvoihin, toimituksiin tai liikkuvaan kalustoon?', weights:{ ajoneuvot:3, vastuu:1 }, risk:'Liikkuvaan toimintaan liittyvä kalusto- ja vahinkoriski.' },
-    { id:'b_customer_damage', stage:1, text:'Voiko työvirhe tai toiminta aiheuttaa vahinkoa asiakkaalle tai ulkopuoliselle?', weights:{ vastuu:3 }, risk:'Asiakas- ja vastuuvahinkojen riski.' },
-    { id:'b_data_dependency', stage:1, text:'Onko liiketoiminta riippuvainen datasta, järjestelmistä tai digitaalisista prosesseista?', weights:{ kyber:3, keskeytys:1 }, risk:'Digitaaliseen toimintaan liittyvä häiriö- ja tietoturvariski.' },
-    { id:'b_staff_dependency', stage:1, text:'Vaikuttaako henkilöstön työkyky tai saatavuus suoraan liiketoiminnan toimintaan?', weights:{ henkilosto:3, palkitseminen:1 }, risk:'Työkykyyn ja avainhenkilöihin liittyvä liiketoimintariski.' },
-    { id:'b_property_assets', stage:1, text:'Onko yrityksellä varastoa, koneita, laitteita tai muuta arvokasta omaisuutta?', weights:{ omaisuus:3 }, risk:'Omaisuuteen, kalustoon tai tiloihin liittyvä vahinkoriski.' },
-    { id:'b_business_stop', stage:1, text:'Voisiko toiminnan häiriö pysäyttää myynnin, tuotannon tai palvelun nopeasti?', weights:{ keskeytys:3 }, risk:'Keskeytymisestä syntyvä liikevaihtoriski.' },
+    { id:'b_vehicle_ops', stage:1, text:'Perustuuko toiminta ajoneuvoihin tai liikkuvaan kalustoon?', weights:{ ajoneuvot:3, vastuu:1 }, risk:'Liikkuvaan toimintaan liittyvä kalusto- ja vahinkoriski.' },
+    { id:'b_customer_damage', stage:1, text:'Voiko toiminta aiheuttaa vahinkoa asiakkaalle tai ulkopuoliselle?', weights:{ vastuu:3 }, risk:'Asiakas- ja vastuuvahinkojen riski.' },
+    { id:'b_data_dependency', stage:1, text:'Onko liiketoiminta riippuvainen järjestelmistä tai datasta?', weights:{ kyber:3, keskeytys:1 }, risk:'Digitaaliseen toimintaan liittyvä häiriö- ja tietoturvariski.' },
+    { id:'b_staff_dependency', stage:1, text:'Vaikuttaako henkilöstön työkyky suoraan liiketoimintaan?', weights:{ henkilosto:3, palkitseminen:1 }, risk:'Työkykyyn ja avainhenkilöihin liittyvä liiketoimintariski.' },
+    { id:'b_property_assets', stage:1, text:'Onko yrityksellä arvokasta omaisuutta, varastoa tai laitteita?', weights:{ omaisuus:3 }, risk:'Omaisuuteen, kalustoon tai tiloihin liittyvä vahinkoriski.' },
+    { id:'b_business_stop', stage:1, text:'Voisiko toiminnan häiriö pysäyttää tekemisen nopeasti?', weights:{ keskeytys:3 }, risk:'Keskeytymisestä syntyvä liikevaihtoriski.' },
 
-    { id:'b_route_critical', stage:2, askIf:s=>s.answers.b_vehicle_ops===true, text:'Olisiko kuljetusten tai ajoneuvojen häiriö nopeasti merkittävä ongelma asiakkaillenne?', weights:{ ajoneuvot:2, keskeytys:2 }, risk:'Kaluston ja toimitusketjun kriittisyys.' },
-    { id:'b_site_work', stage:2, askIf:s=>s.answers.b_customer_damage===true || ['Rakennuspalvelut','Rakennusala','Huolto / asennuspalvelut'].includes(s.sector), text:'Työskennelläänkö usein asiakkaan kohteissa tai muiden osapuolten ympäristöissä?', weights:{ vastuu:3 }, risk:'Asiakaskohteissa syntyvien vahinkojen riski.' },
-    { id:'b_sensitive_data', stage:2, askIf:s=>s.answers.b_data_dependency===true, text:'Käsitelläänkö toiminnassa asiakasdataa, maksutietoa tai muuta luottamuksellista tietoa?', weights:{ kyber:3 }, risk:'Luottamukselliseen tietoon liittyvä tietoturvariski.' },
-    { id:'b_many_employees', stage:2, askIf:s=>employeeNumberFromValue(s.employees) >= 6 || s.answers.b_staff_dependency===true, text:'Onko henkilöstön sitouttaminen, työterveys tai avainhenkilöiden pysyvyys teille tärkeä teema?', weights:{ henkilosto:2, palkitseminen:2 }, risk:'Henkilöstön pysyvyyteen ja työkykyyn liittyvä riski.' },
-    { id:'b_supply_chain', stage:2, askIf:s=>s.answers.b_business_stop===true || s.answers.b_property_assets===true, text:'Riippuuko toiminta vahvasti yhdestä toimipaikasta, varastosta tai toimitusketjusta?', weights:{ keskeytys:3, omaisuus:1 }, risk:'Yhden kriittisen pisteen aiheuttama keskeytysriski.' },
-    { id:'b_investment', stage:2, askIf:s=>true, text:'Kiinnostaisiko myös rahoituspalvelu esimerkiksi investointeihin, kalustoon tai kassavirran joustoon?', weights:{ 'rahoitus-business':4 }, risk:'Rahoituksen tarve osana yrityksen kokonaisratkaisua.', service:true },
-    { id:'b_benefits', stage:2, askIf:s=>employeeNumberFromValue(s.employees) >= 2 || s.answers.b_staff_dependency===true, text:'Kiinnostavatko henkilöstöedut tai palkitsemispalvelut osana kokonaisuutta?', weights:{ palkitseminen:4, henkilosto:1 }, risk:'Sitouttamiseen ja työnantajakuvaan liittyvä kehitystarve.', service:true }
+    { id:'b_route_critical', stage:2, askIf:s=>s.answers.b_vehicle_ops===true, text:'Olisiko ajoneuvojen tai kuljetusten häiriö nopeasti ongelma?', weights:{ ajoneuvot:2, keskeytys:2 }, risk:'Kaluston ja toimitusketjun kriittisyys.' },
+    { id:'b_site_work', stage:2, askIf:s=>s.answers.b_customer_damage===true || ['Rakennuspalvelut','Rakennusala','Huolto / asennuspalvelut'].includes(s.sector), text:'Työskennelläänkö usein asiakkaan kohteissa?', weights:{ vastuu:3 }, risk:'Asiakaskohteissa syntyvien vahinkojen riski.' },
+    { id:'b_sensitive_data', stage:2, askIf:s=>s.answers.b_data_dependency===true, text:'Käsitelläänkö toiminnassa luottamuksellista tietoa?', weights:{ kyber:3 }, risk:'Luottamukselliseen tietoon liittyvä tietoturvariski.' },
+    { id:'b_many_employees', stage:2, askIf:s=>employeeNumberFromValue(s.employees) >= 6 || s.answers.b_staff_dependency===true, text:'Onko henkilöstön sitouttaminen tai työterveys teille tärkeää?', weights:{ henkilosto:2, palkitseminen:2 }, risk:'Henkilöstön pysyvyyteen ja työkykyyn liittyvä riski.' },
+    { id:'b_supply_chain', stage:2, askIf:s=>s.answers.b_business_stop===true || s.answers.b_property_assets===true, text:'Riippuuko toiminta yhdestä toimipaikasta tai varastosta?', weights:{ keskeytys:3, omaisuus:1 }, risk:'Yhden kriittisen pisteen aiheuttama keskeytysriski.' },
+    { id:'b_investment', stage:2, askIf:s=>true, text:'Kiinnostaisiko rahoitus esimerkiksi investointeihin tai kalustoon?', weights:{ 'rahoitus-business':4 }, risk:'Rahoituksen tarve osana yrityksen kokonaisratkaisua.', service:true },
+    { id:'b_benefits', stage:2, askIf:s=>employeeNumberFromValue(s.employees) >= 2 || s.answers.b_staff_dependency===true, text:'Kiinnostavatko henkilöstöedut tai palkitsemispalvelut?', weights:{ palkitseminen:4, henkilosto:1 }, risk:'Sitouttamiseen ja työnantajakuvaan liittyvä kehitystarve.', service:true }
   ]
 };
 
@@ -577,9 +574,17 @@ function editBasics(){
   saveState();
   render();
 }
-function openChatModal(){ state.chatOpen = true; document.getElementById('chatModalBackdrop').classList.add('show'); }
-function closeChatModal(){ state.chatOpen = false; document.getElementById('chatModalBackdrop').classList.remove('show'); }
+function syncChatShell(){
+  const shell = document.querySelector('.chat-shell');
+  const btn = document.getElementById('chatExpandBtn');
+  if (!shell) return;
+  shell.classList.toggle('fullscreen', !!state.chatFullscreen);
+  if (btn) btn.textContent = state.chatFullscreen ? '🗗' : '⤢';
+}
+function openChatModal(){ state.chatOpen = true; document.getElementById('chatModalBackdrop').classList.add('show'); syncChatShell(); }
+function closeChatModal(){ state.chatOpen = false; state.chatFullscreen = false; document.getElementById('chatModalBackdrop').classList.remove('show'); saveState(); }
 function minimizeChatModal(){ closeChatModal(); }
+function toggleChatFullscreen(){ state.chatFullscreen = !state.chatFullscreen; syncChatShell(); saveState(); }
 
 function validateBasics(){
   syncStateFromFields();
@@ -710,7 +715,7 @@ function recommendations(){
 }
 function productSheetText(item){
   return [
-    'TUOTESELOSTE (DEMO)',
+    'TUOTESELOSTE',
     '',
     'Tuote: ' + item.title,
     'Tyyppi: ' + (item.type === 'insurance' ? 'Vakuutus' : 'Lisäpalvelu'),
@@ -722,16 +727,60 @@ function productSheetText(item){
     item.why,
     '',
     'Huomio:',
-    'Tämä on demon esimerkkiseloste eikä virallinen tuotedokumentti.'
+    'Tuoteseloste avautuisi tästä kohtaa.'
   ].join('\n');
 }
 function productSheetHref(id){
-  const item = productMap[id];
-  if (!item) return '#';
-  return 'data:text/plain;charset=utf-8,' + encodeURIComponent(productSheetText(item));
+  return 'javascript:void(0)';
+}
+function recommendationFitLabel(item){
+  return state.customerType === 'private' ? 'Miksi tämä voi olla sinulle hyvä?' : 'Miksi tämä voi olla yrityksellesi hyvä?';
+}
+function recommendationReasonText(item){
+  return item.reasons && item.reasons.length ? item.reasons[0] : item.why;
+}
+function recommendationCoverageText(item){
+  const map = {
+    kotivakuutus:'Kotivakuutus liittyy kodin, irtaimiston ja arjen yllättävien vahinkojen suojaamiseen. Se voi auttaa esimerkiksi tilanteissa, joissa kotiin, tavaroihin tai asumiseen liittyy vahinko ja siitä syntyy kuluja tai muuta haittaa.',
+    tapaturma:'Tapaturmavakuutus liittyy äkillisiin vahinkoihin, joita voi sattua arjessa, vapaa-ajalla, harrastuksissa tai liikkumisen yhteydessä. Se voi auttaa varautumaan esimerkiksi hoidon tai toipumisen aiheuttamiin seurauksiin vakuutuksen laajuudesta riippuen.',
+    matka:'Matkavakuutus liittyy matkalla tapahtuviin yllättäviin tilanteisiin, kuten sairastumiseen, tapaturmiin, matkan peruuntumiseen, keskeytymiseen tai matkatavaroihin kohdistuviin vahinkoihin. Sen tarkka sisältö riippuu vakuutuksen laajuudesta.',
+    auto:'Autovakuutus liittyy ajoneuvon käyttöön, liikenteessä sattuvien tilanteiden taloudellisiin seurauksiin ja ajoneuvolle aiheutuviin vahinkoihin. Se auttaa varautumaan tilanteisiin, joissa auto on keskeinen osa arjen liikkumista.',
+    terveys:'Terveysvakuutus liittyy hoitoon pääsyyn, tutkimuksiin ja arjen terveyshuoliin. Se voi tuoda sujuvuutta tilanteisiin, joissa halutaan nopeampi eteneminen hoidon tai tutkimusten pariin.',
+    lemmikki:'Lemmikkivakuutus liittyy lemmikin sairastumiseen tai tapaturmiin ja niistä syntyviin eläinlääkärikuluihin. Se auttaa varautumaan tilanteisiin, joissa lemmikin hoito vaatii odottamattomia käyntejä tai tutkimuksia.',
+    'rahoitus-private':'Rahoituspalvelu voi tukea isompia hankintoja, kodin investointeja tai arjen talouden joustoja silloin, kun vakuutusratkaisujen rinnalle tarvitaan myös maksamisen joustavuutta.',
+    kyber:'Kybervakuutus liittyy digitaalisiin riskeihin, kuten tietomurtoihin, tietovuotoihin, järjestelmähäiriöihin ja palvelukatkoksiin. Se auttaa yritystä varautumaan tilanteisiin, joissa digitaalinen häiriö vaikuttaa toimintaan tai aiheuttaa kustannuksia.',
+    vastuu:'Toiminnan vastuuvakuutus liittyy tilanteisiin, joissa yrityksen toiminta aiheuttaa vahinkoa ulkopuoliselle tai asiakkaan omaisuudelle. Se auttaa varautumaan tilanteisiin, joista voi syntyä korvausvastuu.',
+    ajoneuvot:'Ajoneuvoihin liittyvät vakuutukset liittyvät yrityksen käyttämiin autoihin, pakettiautoihin, kuljetuksiin ja liikkuvaan kalustoon. Ne auttavat varautumaan vahinkoihin, käyttökatkoksiin ja ajoneuvojen käyttöön liittyviin riskeihin.',
+    henkilosto:'Henkilöstön terveys- ja turvaratkaisut liittyvät työkykyyn, tapaturmiin ja henkilöstön hyvinvointiin. Ne auttavat varautumaan tilanteisiin, joissa henkilöstöön liittyvät riskit vaikuttavat arkeen tai liiketoimintaan.',
+    keskeytys:'Keskeytysratkaisut liittyvät tilanteisiin, joissa vahinko, häiriö tai katkos estää liiketoiminnan normaalin jatkumisen. Ne auttavat varautumaan siihen, että toiminnan pysähtyminen aiheuttaa taloudellista haittaa.',
+    omaisuus:'Omaisuus- ja varastovakuutukset liittyvät yrityksen tiloihin, kalustoon, koneisiin, laitteisiin ja varastoitavaan omaisuuteen. Ne auttavat varautumaan vahinkoihin, jotka kohdistuvat yrityksen fyysisiin resursseihin.',
+    'rahoitus-business':'Rahoituspalvelu voi tukea yrityksen investointeja, kalustohankintoja tai kassavirran joustavuutta silloin, kun vakuutusten rinnalla tarvitaan myös rahoituksellista liikkumavaraa.',
+    palkitseminen:'Palkitsemispalvelut liittyvät henkilöstön sitouttamiseen, etuihin ja työnantajakuvan vahvistamiseen. Ne voivat täydentää vakuutusratkaisuja silloin, kun yritys haluaa rakentaa laajempaa henkilöstökokonaisuutta.'
+  };
+  return map[item.id] || item.description;
+}
+function recommendationBenefitText(item){
+  const map = {
+    kotivakuutus:'Tämä voi olla hyvä ratkaisu, jos haluat varautua siihen, että kotiin tai omaisuuteen liittyvä vahinko ei aiheuta kaikkea taloudellista haittaa omalle vastuullesi.',
+    tapaturma:'Tämä voi olla hyvä ratkaisu, jos haluat turvaa tilanteisiin, joissa yllättävä vahinko voisi muuten aiheuttaa kustannuksia tai hankaluuksia arkeen.',
+    matka:'Tämä voi olla hyvä ratkaisu, jos matkustaminen on osa arkeasi tai vapaa-aikaasi ja haluat varautua yllättäviin tilanteisiin jo etukäteen.',
+    auto:'Tämä voi olla hyvä ratkaisu, jos auto on tärkeä osa päivittäistä liikkumista ja haluat turvaa vahinkojen tai käyttökatkosten varalle.',
+    terveys:'Tämä voi olla hyvä ratkaisu, jos pidät tärkeänä hoidon sujuvuutta ja haluat lisätä ennakoitavuutta terveyteen liittyvissä tilanteissa.',
+    lemmikki:'Tämä voi olla hyvä ratkaisu, jos lemmikki on tärkeä osa arkea ja haluat varautua siihen, että yllättävä hoitotarve ei aiheuta liian suurta taloudellista kuormaa.',
+    'rahoitus-private':'Tämä voi olla hyvä lisä, jos haluat tarkastella vakuutustarpeiden rinnalla myös talouden joustoa tai tulevia hankintoja.',
+    kyber:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos liiketoiminta nojaa järjestelmiin, dataan tai digitaalisiin palveluihin ja haluat pienentää häiriöiden vaikutusta toimintaan.',
+    vastuu:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos toimintaan liittyy asiakastyötä tai ulkopuoliselle aiheutuvan vahingon mahdollisuus ja haluat varautua korvausvastuun taloudellisiin seurauksiin.',
+    ajoneuvot:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos ajoneuvot tai liikkuva kalusto ovat olennainen osa työn tekemistä ja niiden vahingot vaikuttaisivat arkeen nopeasti.',
+    henkilosto:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos henkilöstön työkyky, turvallisuus ja hyvinvointi vaikuttavat suoraan palvelukykyyn ja liiketoiminnan jatkuvuuteen.',
+    keskeytys:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos toiminnan pysähtyminen aiheuttaisi nopeasti liikevaihtoon, asiakaspalveluun tai toimituksiin liittyviä ongelmia.',
+    omaisuus:'Tämä voi olla yrityksellesi hyvä ratkaisu, jos yrityksen tila, kalusto, laitteet tai varasto ovat kriittisiä toiminnan jatkumiselle.',
+    'rahoitus-business':'Tämä voi olla yrityksellesi hyvä lisä, jos kasvun, investointien tai hankintojen rinnalla tarvitaan myös taloudellista joustoa.',
+    palkitseminen:'Tämä voi olla yrityksellesi hyvä lisä, jos haluat vahvistaa henkilöstön sitoutumista ja rakentaa vakuutusten rinnalle houkuttelevampaa työnantajakokemusta.'
+  };
+  return map[item.id] || item.why;
 }
 function renderRecommendationCard(r){
-  return `<div class="solution"><div class="solution-top"><div><h4>${r.title}</h4><div style="margin-top:6px"><span class="pill ${r.type==='service'?'service':'primary'}">${r.type==='service'?'Lisäpalvelu':'Vakuutussuositus'}</span></div></div></div><p>${r.description}</p><div class="why"><strong>Miksi tämä nousi?</strong> ${(r.reasons[0] || r.why)}</div><div class="nav-row" style="margin-top:12px"><a class="btn secondary" href="${productSheetHref(r.id)}" download="${r.title.replace(/[^a-zA-Z0-9åäöÅÄÖ]+/g,'-').toLowerCase()}-tuoteseloste.txt">Tästä voi ladata tuoteselosteen</a></div></div>`;
+  return `<div class="solution"><div class="solution-top"><div><h4>${r.title}</h4><div style="margin-top:6px"><span class="pill ${r.type==='service'?'service':'primary'}">${r.type==='service'?'Lisäpalvelu':'Vakuutus'}</span></div></div></div><p>${r.description}</p><div class="why"><strong>Miksi tämä nousi suositukseen?</strong> ${recommendationReasonText(r)}</div><div class="why"><strong>Mitä tämä yleisesti kattaa?</strong> ${recommendationCoverageText(r)}</div><div class="why"><strong>${recommendationFitLabel(r)}</strong> ${recommendationBenefitText(r)}</div><div class="nav-row" style="margin-top:12px"><button class="btn secondary" type="button" onclick="return false;">Tästä voi ladata tuoteselosteen</button></div></div>`;
 }
 function renderRecommendationBlocks(recs){
   if (!recs.length) return `<div class="solution"><div class="solution-top"><h4>Yleinen suositus</h4><span class="pill">Arvio</span></div><p>Demo ei saanut tarpeeksi vahvaa signaalia yksittäiseen ratkaisuun. Tässä tilanteessa oikea seuraava askel olisi lyhyt tarpeiden kartoitus asiantuntijan kanssa.</p></div>`;
@@ -755,7 +804,7 @@ function nextStepText(){
   const recs = recommendations();
   if (!recs.length) return 'Tietoja on vielä melko vähän, joten seuraava askel olisi tarkentaa tarvetta asiantuntijan kanssa.';
   const services = recs.filter(r => r.type === 'service');
-  if (services.length) return 'Vakuutusten rinnalla sinulle voisi sopia myös lisäpalvelu. Se kannattaa nostaa keskustelussa mukaan heti alussa.';
+  if (services.length) return 'Vakuutukset näyttävät olevan tärkein kokonaisuus. Tarvittaessa mukaan voi ottaa myös lisäpalvelun.';
   return 'Seuraava askel olisi käydä tärkeimmät suositukset läpi asiantuntijan kanssa ja tarkentaa laajuus sekä hinnoittelun lähtökohdat.';
 }
 
@@ -776,14 +825,10 @@ function renderResult(){
     topBar.innerHTML = '';
     const ready = !missing.length && !businessIdIssue;
     container.innerHTML = `<div class="intro-shell"><div class="intro-hero">
-      <div class="intro-badge">Aloitusnäkymä</div>
-      <h2 class="intro-title">Täytä ensin asiakastiedot</h2>
-      <p class="intro-copy">Täytä vasemmalta tarvittavat perustiedot. Kun tiedot ovat kunnossa, siirryt seuraavaan näkymään, jossa keskitytään vain vakuutuskysymyksiin, tuoteselosteisiin ja sinulle sopiviin suosituksiin.</p>
+            <h2 class="intro-title">Täytä ensin asiakastiedot</h2>
+      <p class="intro-copy">Täytä vasemmalta tarvittavat perustiedot. Kun tiedot ovat kunnossa, siirryt seuraavaan näkymään, jossa keskitytään vakuutuskysymyksiin ja sinulle sopiviin suosituksiin.</p>
       <div class="intro-card-grid">
-        <div class="intro-info-card">
-          <h3>Mitä tapahtuu seuraavaksi?</h3>
-          <p>Kun asiakastiedot on hyväksytty, avautuu vakuutuskartoitus omana selkeänä näkymänään. Sen jälkeen näet suositukset ensin vakuutusten näkökulmasta ja voit halutessasi jättää yhteydenottopyynnön.</p>
-        </div>
+        
         <div class="intro-status-card">
           <h3>Asiakastietojen tila</h3>
           ${ready ? `<div class="intro-status-ready">Valmis etenemään</div><p>Perustiedot ovat kunnossa. Voit siirtyä vakuutuskysymyksiin.</p>` : `<p>Täytä vielä seuraavat tiedot, jotta pääset etenemään: <strong>${missing.join(', ') || '—'}</strong>.</p>`}
@@ -818,8 +863,6 @@ function renderResult(){
 
   const recs = recommendations();
   const contact = getContact();
-  const risks = riskSummary();
-  const top = topNeeds();
   const overviewRows = state.customerType === 'private'
     ? `
       <div class="mini-row"><span>Nimi</span><strong>${privateFullName()}</strong></div>
@@ -836,26 +879,21 @@ function renderResult(){
 
   container.innerHTML = `<div class="step-title">${meta.title}</div><div class="step-desc">${meta.desc}</div>
     <div class="mini-table">${overviewRows}</div>
-    <div class="summary-grid" style="margin-bottom:14px;display:grid;">
-      <div class="risk-card"><h4>Tunnistetut tarpeet</h4><ul class="risk-list">${top.length ? top.map(t=>`<li><strong>${t.title}:</strong> ${t.why}</li>`).join('') : '<li>Tarve jäi vielä yleiselle tasolle.</li>'}</ul></div>
-      <div class="risk-card"><h4>Seuraava suositeltu askel</h4><p>${nextStepText()}</p><div class="why"><strong>Miksi tämä kannattaa tehdä nyt?</strong> Keskustelussa voidaan tarkentaa laajuus, rajaukset ja mahdollinen hinnoittelun lähtökohta.</div></div>
-    </div>
-    ${risks.length ? `<div class="final-card"><h4>Vastauksissa nousseet riskit</h4><ul class="final-list">${risks.map(r=>`<li>${r}</li>`).join('')}</ul></div>` : ''}
     <div class="recommendation-layout">
       <div>
         ${renderRecommendationBlocks(recs)}
       </div>
       <div class="contact-side">
         <div class="contact-card">
-          <h4>Jätä yhteydenottopyyntö</h4>
-          <p>${state.customerType === 'private' ? 'Voit jättää yhteydenottopyynnön milloin tahansa. Kortti pysyy näkyvissä sivussa samalla kun selaat vakuutusten selityksiä ja tuoteselosteita.' : 'Voit jättää yhteydenottopyynnön milloin tahansa. Kortti pysyy näkyvissä sivussa samalla kun selaat vakuutusten selityksiä ja tuoteselosteita.'}</p>
+          <h4>Pyydä yhteydenottoa</h4>
+          <p>Kun haluat jatkaa, voit jättää yhteydenottopyynnön tästä ilman että vakuutusten tiedot menevät piiloon.</p>
           <div class="summary-grid" style="display:grid;">
             <div class="contact-item"><strong>Tiimi</strong><br>${contact.team}</div>
             <div class="contact-item"><strong>Yhteyshenkilö</strong><br>${contact.name}</div>
             <div class="contact-item"><strong>Puh.</strong><br>${contact.phone}</div>
             <div class="contact-item"><strong>Sähköposti</strong><br>${contact.email}</div>
           </div>
-          <button class="btn" style="margin-top:12px;width:100%" onclick="openOfferModal()">Jätä yhteydenottopyyntö</button>
+          <button class="btn" style="margin-top:12px;width:100%" onclick="openOfferModal()">Pyydä yhteydenottoa</button>
         </div>
       </div>
     </div>
@@ -881,10 +919,10 @@ function renderOfferOptions(){
   const recommendedServices = serviceItems.filter(item => suggestedSet.has(item.title));
   const otherServices = serviceItems.filter(item => !suggestedSet.has(item.title));
   document.getElementById('insuranceOptionsMount').innerHTML = `
-    <div class="offer-helper">Tämän työkalun päätarkoitus on auttaa vakuutusten kartoituksessa. Siksi vakuutukset näytetään ensin ja suositellut vaihtoehdot ovat valmiiksi valittuna. Voit kuitenkin valita mukaan mitä tahansa tuotteita koko valikoimasta.</div>
+    <div class="offer-helper">Suositellut vakuutukset on valittu valmiiksi. Voit lisätä mukaan mitä tahansa vakuutuksia koko valikoimasta.</div>
     ${renderOptionGroup('Suositellut vakuutukset', recommendedInsurance, selectedSet, suggestedSet, 'insurance')}
     ${renderOptionGroup('Muut vakuutukset', otherInsurance, selectedSet, suggestedSet, 'insurance')}
-    ${(recommendedServices.length || otherServices.length) ? `<div class="offer-helper" style="margin-top:10px">Lisäpalvelut ovat valinnaisia eivätkä pääasia vakuutuskartoituksessa.</div>` : ''}
+    ${(recommendedServices.length || otherServices.length) ? `<div class="offer-helper" style="margin-top:10px">Mahdolliset lisäpalvelut ovat valinnaisia.</div>` : ''}
     ${renderOptionGroup('Suositellut lisäpalvelut', recommendedServices, selectedSet, suggestedSet, 'service')}
     ${renderOptionGroup('Muut lisäpalvelut', otherServices, selectedSet, suggestedSet, 'service')}`;
 }
@@ -895,11 +933,7 @@ function openOfferModal(){
   document.getElementById('offerFreeText').value = state.offerSummary.freeText || '';
   document.getElementById('offerConsent').checked = false;
   document.getElementById('offerError').style.display = 'none';
-  document.querySelectorAll('input[name="contactPref"]').forEach(el => el.checked = false);
-  (state.offerSummary?.contactPrefs || []).forEach(value => {
-    const match = document.querySelector(`input[name="contactPref"][value="${value}"]`);
-    if (match) match.checked = true;
-  });
+  document.getElementById('offerContactPref').value = state.offerSummary?.contactPrefs?.[0] || '';
   renderOfferOptions();
   document.getElementById('offerModalBackdrop').classList.add('show');
 }
@@ -935,7 +969,7 @@ function openSummaryModal(){
     <div class="modal-top">
       <div>
         <h3>Yhteenveto</h3>
-        <p>Tässä näkyvät demossa kerätyt tiedot, valitut ratkaisut ja se tiimi, jolle yhteydenotto ohjautuisi.</p>
+        <p>Tässä näkyvät kerätyt tiedot, valitut ratkaisut ja se tiimi, jolle yhteydenotto ohjautuisi.</p>
       </div>
       <button class="close" onclick="closeSummaryModal()">×</button>
     </div>
@@ -989,7 +1023,7 @@ function resetAllData(){
 function getChatContextText(){
   const recs = recommendations();
   const name = displayPrimaryName() || (state.customerType === 'private' ? 'sinulle' : 'yrityksellenne');
-  if (!recs.length) return `${name}: demossa ei ole vielä tarpeeksi vastauksia tarkkaan suositukseen.`;
+  if (!recs.length) return `${name}: vastauksia ei ole vielä tarpeeksi tarkempaan suositukseen.`;
   return `${name}: tärkeimmät tämänhetkiset suositukset ovat ${recs.slice(0,3).map(r=>r.title).join(', ')}.`;
 }
 function rankKnowledge(message){
@@ -1008,29 +1042,47 @@ function chatReply(message){
   const recs = recommendations();
   const contact = getContact();
   const context = rankKnowledge(message);
+  const isLargeBusiness = state.customerType === 'business' && employeeNumberFromValue(state.employees) >= 21;
   let answer = '';
-  if (text.includes('miksi') && (text.includes('suosit') || text.includes('juuri nämä'))){
+
+  if (text.includes('turvata kotini ja tavarani')) {
+    answer = 'Kotia ja tavaroita suojaamaan tärkein lähtökohta on yleensä kotivakuutus. Se auttaa turvaamaan kotia, irtaimistoa ja monia arjen yllättäviä vahinkoja. Jos vastauksissasi korostuvat myös perhe, aktiivinen arki tai nopea hoitoon pääsy, kokonaisuutta voivat täydentää esimerkiksi tapaturma- tai terveysvakuutus.';
+  } else if (text.includes('auto ja perhe')) {
+    answer = 'Jos arjessasi korostuvat auto ja perhe, yleensä ensimmäisiä selvitettäviä ovat autovakuutus, kotivakuutus sekä tarpeen mukaan tapaturma- tai terveysvakuutus. Ajatuksena on turvata sekä liikkuminen että arjen jatkuvuus, jos vahinko, sairastuminen tai muu yllättävä tilanne keskeyttää tavallisen arjen.';
+  } else if (text.includes('matkavakuutus yleensä kattaa') || text.includes('matkustan melko usein')) {
+    answer = 'Jos matkustat melko usein, matkavakuutus on yleensä hyvä selvittää. Se voi liittyä esimerkiksi matkasairauteen, tapaturmiin, matkan peruuntumiseen tai keskeytymiseen sekä matkatavaroihin. Tarkka sisältö riippuu vakuutuksen tasosta ja ehdoista, mutta tarkoitus on vähentää matkustamiseen liittyvää epävarmuutta ja kustannusriskiä.';
+  } else if (text.includes('aloitin uuden yrityksen')) {
+    answer = 'Uudelle yritykselle tärkeimmät vakuutukset riippuvat toimialasta, työn luonteesta, asiakkaista ja siitä, käytetäänkö kalustoa tai ajoneuvoja. Usein ensimmäisiä selvitettäviä ovat toiminnan vastuuvakuutus, oikeusturva sekä toimialasta riippuen esimerkiksi ajoneuvoihin, omaisuuteen tai kyberriskeihin liittyvät vakuutukset. Tavoitteena on rakentaa perussuoja, joka tukee liiketoiminnan käynnistymistä ilman turhaa monimutkaisuutta.';
+  } else if (text.includes('suojaan yrityksen ja henkilöstön')) {
+    answer = 'Jos yrityksessä on työntekijöitä ja tehdään asiakastyötä, yleensä kannattaa tarkastella sekä yrityksen vastuuta että henkilöstön turvaa. Tällöin olennaisia voivat olla toiminnan vastuuvakuutus, henkilöstön terveys- ja turvaratkaisut sekä toimialasta riippuen myös oikeusturva tai keskeytysratkaisut. Näin voidaan suojata sekä yrityksen toimintaa että arjen jatkuvuutta työntekijöiden näkökulmasta.';
+  } else if (text.includes('autoa tai pakettiautoa työssä')) {
+    answer = 'Jos työssä käytetään autoa tai pakettiautoa, ajoneuvoihin liittyvät vakuutukset ovat yleensä keskeinen osa kokonaisuutta. Niiden rinnalla voi olla tärkeää tarkastella myös toiminnan vastuuvakuutusta, jos työhön liittyy asiakaskäyntejä, kuljetuksia tai ulkopuoliselle aiheutuvia vahinkoriskejä. Tarvittaessa myös keskeytysratkaisut voivat olla hyödyllisiä, jos ajoneuvo on kriittinen osa toimintaa.';
+  } else if (text.includes('vahinko keskeyttää liiketoiminnan')) {
+    answer = 'Suuremmassa yrityksessä kannattaa varautua myös siihen, että vahinko ei koske vain yksittäistä omaisuutta vaan koko liiketoiminnan jatkuvuutta. Tällöin keskeytysriskeihin liittyvät ratkaisut, omaisuusvakuutukset ja toiminnan kannalta kriittisten pisteiden tunnistaminen korostuvat. Tavoite on vähentää tilannetta, jossa yksi häiriö pysäyttää myynnin, tuotannon tai palvelun pitkäksi aikaa.';
+  } else if (text.includes('paljon henkilöstöä')) {
+    answer = 'Kun henkilöstöä on paljon, työntekijöiden turva kannattaa rakentaa osaksi laajempaa kokonaisuutta. Silloin keskeisiä teemoja ovat henkilöstön terveys- ja turvaratkaisut, työkyvyn tukeminen sekä mahdolliset henkilöstöedut ja palkitsemispalvelut. Näillä voidaan tukea sekä työntekijöiden arkea että yrityksen toiminnan jatkuvuutta.';
+  } else if (text.includes('kyberriskien ja vastuuriskien varalta')) {
+    answer = 'Suuremmassa yrityksessä sekä kyberriskit että vastuuriskit voivat kasvaa nopeasti, koska toiminta on laajempaa ja riippuvuus järjestelmistä, datasta ja asiakkuuksista on usein suurempi. Tällöin kannattaa yleensä tarkastella ainakin kybervakuutusta, toiminnan vastuuvakuutusta ja tarvittaessa myös keskeytys- ja omaisuusratkaisuja. Tarkoitus on varmistaa, että sekä digitaaliset että toiminnalliset riskit on huomioitu samassa kokonaisuudessa.';
+  } else if (text.includes('miksi') && (text.includes('suosit') || text.includes('juuri nämä'))){
     answer = recs.length ? `Suositukset nousivat esiin siksi, että vastauksissasi painottuivat erityisesti ${recs.slice(0,2).map(r=>r.reasons[0] || r.title.toLowerCase()).join(' sekä ')}.` : 'Tarvitsen vielä hieman enemmän vastauksia, jotta voin perustella suosituksia tarkemmin.';
   } else if (text.includes('yhteydenotto') || text.includes('asiantuntija') || text.includes('tiimi')) {
-    answer = `Tässä demossa yhteydenotto ohjautuisi tiimille “${contact.team}”. Ensisijainen yhteyshenkilö olisi ${contact.name}, puh. ${contact.phone}, sähköposti ${contact.email}.`;
+    answer = `Yhteydenotto ohjautuisi tiimille “${contact.team}”. Ensisijainen yhteyshenkilö olisi ${contact.name}, puh. ${contact.phone}, sähköposti ${contact.email}.`;
   } else if (text.includes('rahoitus')) {
     answer = state.customerType === 'private'
       ? 'Rahoituspalvelu nousee esiin silloin, jos vastauksissa näkyy tarve isommalle hankinnalle, kodin investoinnille tai talouden joustolle vakuutusten rinnalla.'
       : 'Yrityspolulla rahoituspalvelu nousee mukaan, jos investointi, kalusto, kasvu tai kassavirran jousto vaikuttaa ajankohtaiselta vakuutusturvan rinnalla.';
   } else if (text.includes('palkitsem') || text.includes('henkilöstöetu')) {
     answer = 'Palkitsemispalvelut näkyvät yrityspolulla silloin, jos henkilöstön sitouttaminen, työnantajakuva tai avainhenkilöiden pysyvyys vaikuttaa tärkeältä teemalta.';
-  } else if (text.includes('mitä seuraavaksi') || text.includes('seuraava askel')) {
-    answer = nextStepText();
   } else if (text.includes('vertaa') || text.includes('ero')) {
     answer = recs.length >= 2
       ? `Tällä hetkellä vahvimmat kaksi nostoa ovat ${recs[0].title} ja ${recs[1].title}. Ensimmäinen liittyy erityisesti siihen, että ${recs[0].reasons[0] || recs[0].why.toLowerCase()}, kun taas toinen nousi siksi, että ${recs[1].reasons[0] || recs[1].why.toLowerCase()}.`
       : 'Tarvitsen vähintään kaksi vahvaa suositusta, jotta voin verrata niitä järkevästi.';
   } else if (text.includes('hinta')) {
-    answer = 'Tässä demossa ei lasketa hintaa. Tarkoitus on näyttää, mitä ratkaisuja kannattaa selvittää ensin ennen varsinaista tarjousta tai tarkempaa myyntikeskustelua.';
+    answer = 'Tässä näkymässä ei lasketa hintaa. Tarkoitus on näyttää, mitä ratkaisuja kannattaa selvittää ensin ennen varsinaista tarjousta tai tarkempaa myyntikeskustelua.';
   } else if (recs.length) {
-    answer = `Tämänhetkisen profiilin perusteella tärkeimmät nostot ovat ${recs.slice(0,3).map(r=>r.title).join(', ')}. Voin avata sinulle miksi juuri nämä nousivat, verrata kahta suositusta tai kertoa mitä seuraavaksi kannattaa tehdä.`;
+    answer = `Tämänhetkisen profiilin perusteella tärkeimmät nostot ovat ${recs.slice(0,3).map(r=>r.title).join(', ')}. Voin avata sinulle miksi juuri nämä nousivat tai kertoa tarkemmin yhdestä tilanteeseesi sopivasta vakuutuksesta.`;
   } else {
-    answer = 'Täytä ensin perustiedot ja vastaa kartoituksen kysymyksiin. Sen jälkeen voin selittää suosituksia, lisäpalveluja ja seuraavaa askelta huomattavasti tarkemmin.';
+    answer = 'Täytä ensin perustiedot ja vastaa kartoituksen kysymyksiin. Sen jälkeen voin selittää suosituksia ja vakuutuksia huomattavasti tarkemmin.';
   }
   return { answer, sources: context };
 }
@@ -1048,9 +1100,10 @@ function appendMessage(role, text){
 function seedWelcome(){
   const chat = document.getElementById('chatScroll');
   if (chat.children.length) return;
+  appendMessage('bot', 'Hei! Täytä ensin perustiedot.');
   appendMessage('bot', state.customerType === 'private'
-    ? 'Hei! Täytä ensin perustiedot ja vastaa kartoituksen kysymyksiin. Sen jälkeen voin kertoa, miksi juuri tietyt vakuutukset tai lisäpalvelut nousivat sinulle.'
-    : 'Hei! Täytä ensin yrityksen perustiedot ja vastaa kartoituksen kysymyksiin. Tämän jälkeen voin perustella, miksi tietyt vakuutukset, rahoitus tai palkitsemispalvelut nousivat esiin.');
+    ? 'Kun olet vastannut kysymyksiin, voin selittää miksi tietyt vakuutukset nousivat suosituksiksi.'
+    : 'Kun olet vastannut kysymyksiin, voin selittää miksi tietyt vakuutukset tai lisäpalvelut nousivat suosituksiksi.');
 }
 function clearChatForNewProfile(){
   document.getElementById('chatScroll').innerHTML='';
@@ -1067,14 +1120,31 @@ function askAI(){
   updateCounter();
   const result = chatReply(msg);
   appendMessage('bot', result.answer);
-  document.getElementById('sources').innerHTML = result.sources.length ? 'Aiheeseen liittyvät nostot: ' + result.sources.map(s => s.title).join(' · ') : '';
+  document.getElementById('sources').innerHTML = '';
 }
 function askChip(text){ document.getElementById('question').value = text; updateCounter(); askAI(); }
 function renderChatChips(){
-  const chips = state.customerType === 'private'
-    ? ['Miksi juuri nämä suositukset?','Vertaile kahta tärkeintä suositusta','Mitä seuraavaksi kannattaa tehdä?','Miten rahoitus liittyy tähän?']
-    : ['Miksi juuri nämä suositukset?','Vertaile kahta tärkeintä suositusta','Miten rahoitus liittyy tähän?','Milloin palkitsemispalvelut nousevat mukaan?'];
-  document.getElementById('chatChips').innerHTML = chips.map(c => `<button class="chip" onclick="askChip('${c.replace(/'/g,"&#39;")}')">${c}</button>`).join('');
+  let chips = [];
+  if (state.customerType === 'private') {
+    chips = [
+      {label:'Koti ja tavarat', ask:'Miten voin turvata kotini ja tavarani?'},
+      {label:'Auto ja perhe', ask:'Minulla on auto ja perhe, mitä vakuutuksia kannattaa selvittää?'},
+      {label:'Matkavakuutus', ask:'Matkustan melko usein, mitä matkavakuutus yleensä kattaa?'}
+    ];
+  } else if (employeeNumberFromValue(state.employees) >= 21) {
+    chips = [
+      {label:'Keskeytysriski', ask:'Miten suojaamme yrityksen toimintaa, jos vahinko keskeyttää liiketoiminnan?'},
+      {label:'Henkilöstön turva', ask:'Meillä on paljon henkilöstöä, miten työntekijöiden turva kannattaa rakentaa?'},
+      {label:'Kyber ja vastuu', ask:'Miten suurempi yritys kannattaa suojata kyberriskien ja vastuuriskien varalta?'}
+    ];
+  } else {
+    chips = [
+      {label:'Uuden yrityksen vakuutukset', ask:'Aloitin uuden yrityksen, mitä vakuutuksia kannattaa selvittää ensin?'},
+      {label:'Yritys ja työntekijät', ask:'Meillä on muutama työntekijä ja asiakastyötä, miten suojaan yrityksen ja henkilöstön?'},
+      {label:'Työauton vakuutukset', ask:'Käytämme autoa tai pakettiautoa työssä, mitä vakuutuksia tarvitsemme?'}
+    ];
+  }
+  document.getElementById('chatChips').innerHTML = chips.map(c => `<button class="chip" onclick="askChip('${c.ask.replace(/'/g,"&#39;")}')">${c.label}</button>`).join('');
 }
 function updateCounter(){ document.getElementById('charCount').textContent = document.getElementById('question').value.length; }
 
@@ -1091,7 +1161,7 @@ function render(){
   document.querySelector('.wrap').classList.toggle('questions-view', !!state.profileLocked);
   document.querySelector('.sidebar').style.display = state.profileLocked ? 'none' : 'block';
   document.getElementById('chatLauncher').style.display = state.profileLocked ? 'inline-flex' : 'none';
-  if (state.chatOpen && state.profileLocked) document.getElementById('chatModalBackdrop').classList.add('show');
+  if (state.chatOpen && state.profileLocked) { document.getElementById('chatModalBackdrop').classList.add('show'); syncChatShell(); }
   else document.getElementById('chatModalBackdrop').classList.remove('show');
   renderResult();
   renderChatChips();
